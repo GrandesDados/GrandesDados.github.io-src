@@ -29,3 +29,35 @@ Exemplo:
     (remove a configuração de draft)
     ./deploy.sh 'Novo artigo sobre ...'
 
+Autores
+-------
+
+Criar arquivo:
+
+    data/authors/<ID>.toml
+
+Com os atributos:
+
+    name = "<NOME>"
+    bio = "<APRESENTAÇÃO>"
+    location = "<CIDADE_ESTADO>"
+    website = "<SITE_PESSOAL>"
+
+Nos artigos:
+
+    +++
+    author = "<ID>"
+    (...)
+    +++
+    
+    <CONTEÚDO>
+
+Exemplo:
+
+    data/authors/cirocavani.toml
+    
+    name = "Ciro Cavani"
+    bio = "Engenheiro de Computação."
+    location = "Rio de Janeiro, RJ"
+    website = "https://cirocavani.wordpress.com"
+
