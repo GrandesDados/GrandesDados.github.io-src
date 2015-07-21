@@ -74,7 +74,8 @@ Algumas operações de transformação:<br/>
 **intersection**: retorna os elementos que pertencem a interseção entre 2 RDDs.<br/>
 **distinct**: elimina elementos duplicados do conjunto.<br/>
 **reduceByKey**: executa uma operação de reduce para cada valor que compartilha a mesma chave.<br/>
-**cartesian**: retorna o produto cartesiano entre 2 datasets.<br/>
+**cartesian**: retorna o produto cartesiano entre 2 datasets.
+
 
 Algumas operações de ação:<br/>
 **reduce**: agrega os elementos do dataset usando uma função parâmetro que retornar um valor único.<br/>
@@ -82,7 +83,7 @@ Algumas operações de ação:<br/>
 **count**: retorna o números de elementos do dataset.<br/>
 **take**: retorna os n primeiro elementos do conjunto como um array.<br/>
 **saveAsTextFile**: salva o dataset em disco, como um arquivo em disco.<br/>
-**foreach**: executa uma função para cada elemento do dataset, em geral usado com variáveis acumuladoras<br/>
+**foreach**: executa uma função para cada elemento do dataset, em geral usado com variáveis acumuladoras
 
 Internamente, cada objeto RDD implementa uma interface simples, que consistem em 3 operações:
 
