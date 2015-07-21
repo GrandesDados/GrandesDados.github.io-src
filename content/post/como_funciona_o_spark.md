@@ -1,5 +1,5 @@
 +++
-author = "Ricardo Paiva"
+author = "ricardopaiva"
 comments = true
 date = "2015-07-20T16:11:34-03:00"
 draft = false
@@ -66,8 +66,7 @@ As operações sobre os RDDs podem ser de dois tipos:
 
 Todas as transformações no Spark são lazy, ou seja, eles não são computados imediatamente. O processamento só irá acontecer quando uma ação for executada e o resultado precisar ser retornado para o programa driver.
 
-Algumas operações de transformação:
-
+Algumas operações de transformação:<br/>
 **map**: retorna um novo RDD formado pelo resultado da função parâmetro para cada valor do conjunto.<br/>
 **filter**: filtra cada elemento do dataset a partir de uma função parâmetro.<br/>
 **sample**: retorna uma amostra a partir do dataset.<br/>
@@ -77,7 +76,7 @@ Algumas operações de transformação:
 **reduceByKey**: executa uma operação de reduce para cada valor que compartilha a mesma chave.<br/>
 **cartesian**: retorna o produto cartesiano entre 2 datasets.<br/>
 
-Algumas operações de ação:
+Algumas operações de ação:<br/>
 **reduce**: agrega os elementos do dataset usando uma função parâmetro que retornar um valor único.<br/>
 **collect**: retorna todos os elementos do RDD como um array.
 **count**: retorna o números de elementos do dataset.<br/>
