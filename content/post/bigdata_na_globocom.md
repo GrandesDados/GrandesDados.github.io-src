@@ -7,7 +7,7 @@ image = ""
 menu = ""
 share = true
 slug = "bigdata-na-globocom"
-tags = ["Globo.com", "Plataforma de BigData", "Hadoop", "HBase", "Kafka", "Spark"]
+tags = ["Globo.com", "BigData", "Hadoop", "HBase", "Kafka", "Spark"]
 title = "BigData na Globo.com"
 
 +++
@@ -64,7 +64,7 @@ Em artigos futuros, entrarei em mais detalhes sobre como usar essas tecnologias.
 ### Hadoop
 ![Hadoop logo](/images/posts/bigdata_na_globocom/hadoop-logo.jpg)
 
-O Hadoop tornar o custo por byte de armazenamento / processamento marginal e por isso torna BigData possível na escala de hoje. O problema que o Hadoop resolve é de otimizar a utilização de múltiplas máquinas por vários processos.
+O Hadoop torna o custo por byte de armazenamento / processamento marginal e por isso torna BigData possível na escala de hoje. O problema que o Hadoop resolve é de otimizar a utilização de múltiplas máquinas por vários processos.
 
 Com o Hadoop é possível ter escalabilidade horizontal, alta taxa de utilização (CPU/Memória) e tolerância a falhas com máquinas de baixo custo para armazenar e processar dados. Um processo que é dimensionado inicialmente para um certo volume pode ser escalado colocando mais máquinas no cluster, muitos processos podem compartilhar esse cluster sem preocupação de sobrecarga, ociosidade ou interferência e a perda de máquinas ou falhas de disco não resultam em indisponibilidade ou perda de dado.
 
@@ -201,7 +201,7 @@ Produtores enviam Mensagens para um Tópico específico, para o qual é possíve
 ### Spark
 ![Spark logo](/images/posts/bigdata_na_globocom/spark-logo.png)
 
-O Spark é um framework para processamento distribuído de grande quantidade de dados com foco em análise interativa. O Spark tem uma API simples que torna fácil escrever desde pequenas manipulações de dados, até algoritmos iterativos complexos, de forma escalável e com boas práticas de engenharia de software (testes). Essa característica o torna a ferramenta ideal de trabalho tanto para o Data Engineer que tem que desenvolver uma solução de dados, quanto para o Data Scientist que tem que desenvolver modelos e visualizações. Dessa forma, o Spark hoje é composto por um conjunto grande de funcionalidades com suporte SQL/DataFrame, Machine Learning, Streaming e Processamento de Grafos. Também é o projeto mais popular na área de BigData e cada nova versão adiciona ainda mais abrangência e inovação. 
+O Spark é um framework para processamento distribuído de grande quantidade de dados com foco em análise interativa. O Spark tem uma API simples que torna fácil escrever desde pequenas manipulações de dados, até algoritmos iterativos complexos, de forma escalável e com boas práticas de engenharia de software (testes). Essa característica o torna a ferramenta ideal de trabalho tanto para o Data Engineer que tem que desenvolver uma solução de dados, quanto para o Data Scientist que tem que desenvolver modelos e visualizações. Dessa forma, o Spark hoje é composto por um conjunto grande de funcionalidades com suporte DataFrame / SQL, Machine Learning, Streaming e Processamento de Grafos. Também é o projeto mais popular na área de BigData e cada nova versão adiciona ainda mais abrangência e inovação. 
 
 O projeto começou em Berkeley (pesquisa) como alternativa ao MapReduce para processar dados no cluster usando memória das máquinas como armazenamento entre etapas e vem evoluindo para ser um framework completo de analise de dados. Já fazem parte do projeto: o Spark SQL / DataFrame para processamento de dados estruturados, tabular; Spark ML / MLlib com uma pipeline de processamento e algoritmos de Machine Learning; o Spark Streaming para processamento de stream, mini-batches, diversas fontes como o Kafka, e; o GraphX para processamento de grafo, algoritmos de rede. Esses componentes são construídos sobre a mesma API básica do Spark e podem ser usadas em conjunto. Da proposta original aos componentes avançados, o Spark substitui o MapReduce completamente (o Tez é outra abordagem para substituir o MapReduce).
 
@@ -213,7 +213,7 @@ Na prática, o Spark facilita bastante o desenvolvimento de aplicações de proc
 
 O pessoal do Spark vem trabalhando em várias abordagem para resolver esses problemas. Uma primeira abordagem é a alocação dinâmica de 'worker' dando elasticidade a aplicação quando tem mais processamento e liberando recursos quando não é mais necessário. Uma segunda abordagem é oferecer uma abstração de dados mais estruturada que permite otimizar dinamicamente as manipulações de dados - o Spark introduziu o DataFrame que é uma tabela (ao invés de puramente uma coleção) que usa o Catalyst, um framework para processamento de dados estruturados que constrói um plano de execução e faz otimização para operações com a tabela e consultas SQL. Uma terceira abordagem é o esforço do Projeto Tungsten com objetivo trazer para o Spark funcionalidades de mais baixo nível, como representação compacta de dados em memória (evitando o GC da JVM), cache automático e geração dinâmica de código - nesse primeiro momento, o foco é o DataFrame / SQL. Por fim, de forma geral, uma abordagem é tornar a execução das tarefas 'automaticamente' mais eficientes através de heurísticas da execução - esse é um projeto que deve frutificar nas próximas versões do Spark. Hoje a recomendação é usar o DataFrame e deixar o framework executar de forma otimizada, e usar o RDD (coleção) quando isso não funcionar.
 
-O Spark é o framework principal que a gente usa no processamento de dados. Com Spark Streaming, usamos para consumir mensagens no Kafka e persistir de forma permanente em Parquet no HDFS. Com Spark ML, usamos para construir o matriz de preferência do usuário-conteúdo e calcular a fatoração do modelo do usuário e do item para o Collaborative Filtering (ALS). Com Spark DataFrame/SQL construímos visualizações de métricas para avaliar os resultados dos testes A/B. Esses são alguns exemplos da versatilidade do Spark e de como ele é útil em uma Plataforma de BigData. 
+O Spark é o framework principal que a gente usa no processamento de dados. Com Spark Streaming, usamos para consumir mensagens no Kafka e persistir de forma permanente em Parquet no HDFS. Com Spark ML, usamos para construir a matriz de preferência do usuário-conteúdo e calcular a fatoração do modelo do usuário e do item para o Collaborative Filtering (ALS). Com Spark SQL / DataFrame construímos visualizações de métricas para avaliar os resultados dos testes A/B. Esses são alguns exemplos da versatilidade do Spark e de como ele é útil em uma Plataforma de BigData. 
 
 ...
 
