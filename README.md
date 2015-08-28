@@ -61,3 +61,13 @@ Exemplo:
     location = "Rio de Janeiro, RJ"
     website = "https://cirocavani.wordpress.com"
 
+Tema
+----
+
+Atualização:
+
+    git checkout master
+    git remote add upstream https://github.com/vjeantet/hugo-theme-casper.git
+    git fetch upstream
+    git rebase upstream/master
+    git push -f
