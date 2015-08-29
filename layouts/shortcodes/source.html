@@ -1,0 +1,2 @@
+{{ $lang := index .Params 0 }}
+<pre><code class="language-{{ $lang }}" style="font-size: medium; line-height: 1.2;">{{ trim .Inner " \n" }}</code></pre>
