@@ -6,11 +6,13 @@ draft = true
 image = ""
 menu = ""
 share = true
-slug = "hadoop-local"
-tags = ["Hadoop", "Docker", "CentOS6"]
+slug = "tutorial-hadoop-local"
+tags = ["Tutorial", "Hadoop", "Docker", "CentOS6"]
 title = "Compilação e Configuração do Hadoop na Máquina Local"
 
 +++
+
+Esse tutorial é sobre ...
 
 Para esse procedimento, é assumido que o Docker esteja instalado e funcionando; também é assumido acesso à Internet.
 
