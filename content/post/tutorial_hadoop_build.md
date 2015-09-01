@@ -12,7 +12,7 @@ title = "Compilação do Hadoop para CentOS6 / RHEL6 usando Docker"
 
 +++
 
-Esse tutorial é sobre a construção do pacote do Hadoop 2.7.1 para o CentOS6 / RHEL6 usando Docker. Esse procedimento é necessário para gerar as bibliotecas nativas compatíveis. O principal objetivo que motivou esse trabalho foi configurar o FairScheduler do YARN usando CGroups rodando no Red Hat Enterprise Linux 6 (RHEL6). O pacote Hadoop distribuído pela Apache tem executável binário que não é compatível com a Glibc que faz parte de CentOS6/RHEL6.
+Esse tutorial é sobre a construção do pacote do Hadoop 2.7.1 para o CentOS6 / RHEL6 usando Docker. Esse procedimento é necessário para gerar as bibliotecas nativas compatíveis. O principal objetivo que motivou esse trabalho foi configurar o FairScheduler do YARN usando CGroups rodando no Red Hat Enterprise Linux 6 (RHEL6). O pacote Hadoop distribuído pela Apache tem executável binário que não é compatível com a Glibc que faz parte do CentOS6/RHEL6.
 
 O RHEL6 é o sistema operacional homologado para as máquinas do cluster que usamos na Globo.com e foi necessário criar uma distribuição própria do Hadoop para que pudéssemos fazer uso do [FairScheduler](http://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/FairScheduler.html) juntamente com o [CGroups](http://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html) para limitar o uso de processamento entre as aplicações rodando nos mesmos NodeManagers.
 
@@ -39,7 +39,7 @@ sudo docker version
 >  Git commit:   d12ea79
 >  Built:        Sat Aug 15 17:29:10 UTC 2015
 >  OS/Arch:      linux/amd64
-> 
+>
 > Server:
 >  Version:      1.8.1
 >  API version:  1.20
@@ -69,10 +69,10 @@ sudo docker run -i -t centos:6 /bin/bash
 
 > Unable to find image 'centos:6' locally
 > 6: Pulling from library/centos
-> 
-> f1b10cd84249: Pull complete 
-> fb9cc58bde0c: Pull complete 
-> a005304e4e74: Already exists 
+>
+> f1b10cd84249: Pull complete
+> fb9cc58bde0c: Pull complete
+> a005304e4e74: Already exists
 > library/centos:6: The image you are pulling has been verified. Important: image verification is a tech preview feature and should not be relied on to provide security.
 >
 > Digest: sha256:25d94c55b37cb7a33ad706d5f440e36376fec20f59e57d16fe02c64698b531c1
@@ -142,7 +142,7 @@ tar zxf apache-maven-3.3.3-bin.tar.gz
 
 O ambiente  de compilação está completo.
 
-Agora estamos pronto para a compilação do Hadoop. Nesse caso, estaremos gerando o pacote de distribuição somente com o binário Java e as bibliotecas nativas. 
+Agora estamos pronto para a compilação do Hadoop. Nesse caso, estaremos gerando o pacote de distribuição somente com o binário Java e as bibliotecas nativas.
 
 {{< source sh >}}
 su - hadoop
@@ -159,16 +159,16 @@ mvn clean package -Pdist,native -DskipTests -Drequire.snappy -Drequire.openssl -
 > main:
 >      [exec] $ tar cf hadoop-2.7.1.tar hadoop-2.7.1
 >      [exec] $ gzip -f hadoop-2.7.1.tar
->      [exec] 
+>      [exec]
 >      [exec] Hadoop dist tar available at: /hadoop/hadoop-2.7.1-src/hadoop-dist/target/hadoop-2.7.1.tar.gz
->      [exec] 
+>      [exec]
 > [INFO] Executed tasks
-> [INFO] 
+> [INFO]
 > [INFO] --- maven-javadoc-plugin:2.8.1:jar (module-javadocs) @ hadoop-dist ---
 > [INFO] Building jar: /hadoop/hadoop-2.7.1-src/hadoop-dist/target/hadoop-dist-2.7.1-javadoc.jar
 > [INFO] ------------------------------------------------------------------------
 > [INFO] Reactor Summary:
-> [INFO] 
+> [INFO]
 > [INFO] Apache Hadoop Main ................................. SUCCESS [01:56 min]
 > [INFO] Apache Hadoop Project POM .......................... SUCCESS [ 42.134 s]
 > [INFO] Apache Hadoop Annotations .......................... SUCCESS [ 37.761 s]
@@ -287,4 +287,3 @@ Particularmente, eu prefiro manter uma plataforma própria.
 Você trabalha com Hadoop ou tem experiência com as tecnologias envolvidas (Java)? Venha trabalhar conosco.
 
 http://talentos.globo.com/
-

@@ -66,6 +66,7 @@ Tema
 
 Atualização:
 
+    (dentro da pasta themes/casper)
     git checkout master
     git remote add upstream https://github.com/vjeantet/hugo-theme-casper.git
     git fetch upstream
