@@ -12,9 +12,9 @@ title = "Compilação do Hadoop para CentOS6 / RHEL6 usando Docker"
 
 +++
 
-Esse tutorial é sobre a construção do pacote do Hadoop 2.7.1 para o CentOS6 / RHEL6 usando Docker. Esse procedimento é necessário para gerar as bibliotecas nativas compatíveis. A principal objetivo que motivou esse trabalho foi configurar o FairScheduler do YARN usando CGroups rodando no Red Hat Enterprise Linux 6 (RHEL6). O pacote Hadoop distribuído pela Apache tem executável binário que não é compatível com a Glibc que faz parte de CentOS6/RHEL6.
+Esse tutorial é sobre a construção do pacote do Hadoop 2.7.1 para o CentOS6 / RHEL6 usando Docker. Esse procedimento é necessário para gerar as bibliotecas nativas compatíveis. O principal objetivo que motivou esse trabalho foi configurar o FairScheduler do YARN usando CGroups rodando no Red Hat Enterprise Linux 6 (RHEL6). O pacote Hadoop distribuído pela Apache tem executável binário que não é compatível com a Glibc que faz parte de CentOS6/RHEL6.
 
-O RHEL6 é o sistema operacional homologado para as máquinas do cluster que usamos na Globo.com e foi necessário criar uma distribuição própria do Hadoop para que pudéssemos fazer uso do [FairScheduler](http://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/FairScheduler.html) juntamente com o [CGroups](http://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html) para limitar o uso de processamento entre as aplicações rodando nos mesmos NodeManager.
+O RHEL6 é o sistema operacional homologado para as máquinas do cluster que usamos na Globo.com e foi necessário criar uma distribuição própria do Hadoop para que pudéssemos fazer uso do [FairScheduler](http://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/FairScheduler.html) juntamente com o [CGroups](http://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html) para limitar o uso de processamento entre as aplicações rodando nos mesmos NodeManagers.
 
 Esse trabalho de configuração do Hadoop para uso compartilhado será assunto de outro artigo.
 
@@ -25,7 +25,7 @@ Nesse artigo, o foco é um passo a passo de como usar o Docker para gerar um pac
 
 Nesse procedimento, é necessário que o Docker esteja instalado e funcionando; também é necessário acesso à Internet.
 
-Originalmente, esse procedimento foi testado no ArchLinux atualizado até final de Agosto.
+Originalmente, esse procedimento foi testado no ArchLinux atualizado até final de Agosto/2015.
 
 https://wiki.archlinux.org/index.php/Docker
 
@@ -54,15 +54,15 @@ sudo docker version
 
 Documento com instruções de build do Hadoop [aqui](https://github.com/apache/hadoop/blob/release-2.7.1/BUILDING.txt).
 
-O resultado desse procedimento é um pacote do Hadoop com as executáveis e bibliotecas nativos compilados para o CentOS6 que rodam no RHEL6.
+O resultado desse procedimento é um pacote do Hadoop com os executáveis e bibliotecas nativas compilados para o CentOS6 que rodam no RHEL6.
 
 `/hadoop/hadoop-2.7.1-src/hadoop-dist/target/hadoop-2.7.1.tar.gz`
 
 ...
 
-Começamos com a criação de um conainer do Docker com a imagem do CentOS.
+Começamos com a criação de um conainer do Docker com a imagem do CentOS6.
 
-Ao executar o comando `run`, o Docker automaticamente será feito o download da imagem e a shell será inicializada dentro de um novo container.
+Ao executar o comando `run`, o Docker automaticamente fará o download da imagem e a shell será inicializada dentro de um novo container.
 
 {{< source sh >}}
 sudo docker run -i -t centos:6 /bin/bash
@@ -133,7 +133,7 @@ curl -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -O http://downl
 rpm -i jdk-8u60-linux-x64.rpm
 {{< /source >}}
 
-No caso do Maven, usaremos o pacote binário de distribuição do Apache.
+No caso do Maven, usaremos o pacote binário de distribuição da Apache.
 
 {{< source sh >}}
 curl -O http://archive.apache.org/dist/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
