@@ -1,7 +1,7 @@
 +++
 author = "cirocavani"
 comments = true
-date = "2015-09-01T21:49:07-03:00"
+date = "2015-09-12T21:49:07-03:00"
 draft = true
 image = ""
 menu = ""
@@ -49,27 +49,83 @@ Hadoop, ZooKeeper, HBase e Kafka.
 
 ### Container
 
+Começamos com a criação de um conainer do Docker com a imagem do CentOS6.
+
+Ao executar o comando `run`, o Docker automaticamente fará o download da imagem e a shell será inicializada dentro de um novo container.
+
+(o identificador do container nesse exemplo é `da0c7171989b`)
+
 {{< source sh >}}
 sudo docker run -i -t centos:6 /bin/bash
+
+> Unable to find image 'centos:6' locally
+> 6: Pulling from library/centos
+>
+> f1b10cd84249: Pull complete
+> fb9cc58bde0c: Pull complete
+> a005304e4e74: Already exists
+> library/centos:6: The image you are pulling has been verified. Important: image verification is a tech preview feature and should not be relied on to provide security.
+>
+> Digest: sha256:25d94c55b37cb7a33ad706d5f440e36376fec20f59e57d16fe02c64698b531c1
+> Status: Downloaded newer image for centos:6
+> [root@da0c7171989b /]#
 {{< /source >}}
+
+Já dentro do container criamos um usuário e local que serão usados para a instalação e execução dos processos.
 
 {{< source sh >}}
 adduser -m -d /hadoop hadoop
 cd hadoop
 {{< /source >}}
 
+A versão usada nesse procedimento é o Java 8, atual versão estável da Oracle.
+
 {{< source sh >}}
 curl -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.rpm
 rpm -i jdk-8u60-linux-x64.rpm
+
+java -version
+
+> java version "1.8.0_60"
+> Java(TM) SE Runtime Environment (build 1.8.0_60-b27)
+> Java HotSpot(TM) 64-Bit Server VM (build 25.60-b23, mixed mode)
 {{< /source >}}
 
+Para completar o ambiente de execução, instalamos os serviços e bibliotecas necessárias.
+
 {{< source sh >}}
-yum install -y tar ssh rsync gzip zlib openssl fuse bzip2 snappy
+yum install -y tar openssh-clients openssh-server rsync gzip zlib openssl fuse bzip2 snappy
 
 > (...)
 {{< /source >}}
 
-'ssh localhost' tem que abrir um shell sem pedir senha (usando authorized_keys)
+(configuração do SSH para acesso sem senha)
+
+{{< source sh >}}
+service sshd start
+chkconfig sshd on
+
+su - hadoop
+
+ssh-keygen -C hadoop -P '' -f ~/.ssh/id_rsa
+cp ~/.ssh/{id_rsa.pub,authorized_keys}
+
+ssh-keyscan localhost >> ~/.ssh/known_hosts
+ssh-keyscan 127.0.0.1 >> ~/.ssh/known_hosts
+
+ssh localhost
+
+> (nova shell, sem login nem confirmação)
+
+# (sair do shell do ssh)
+exit
+# (sair do shell do su)
+exit
+
+whoami
+
+> root
+{{< /source >}}
 
 
 ### Hadoop
