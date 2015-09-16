@@ -53,10 +53,8 @@ Começamos com a criação de um conainer do Docker com a imagem do CentOS6.
 
 Ao executar o comando `run`, o Docker automaticamente fará o download da imagem e a shell será inicializada dentro de um novo container.
 
-(o identificador do container nesse exemplo é `da0c7171989b`)
-
 {{< source sh >}}
-sudo docker run -i -t centos:6 /bin/bash
+sudo docker run -i -t --name=grandesdados-hadoop --hostname=grandesdados-hadoop centos:6 /bin/bash
 
 > Unable to find image 'centos:6' locally
 > 6: Pulling from library/centos
@@ -68,7 +66,7 @@ sudo docker run -i -t centos:6 /bin/bash
 >
 > Digest: sha256:25d94c55b37cb7a33ad706d5f440e36376fec20f59e57d16fe02c64698b531c1
 > Status: Downloaded newer image for centos:6
-> [root@da0c7171989b /]#
+> [root@grandesdados-hadoop /]#
 {{< /source >}}
 
 Já dentro do container criamos um usuário e local que serão usados para a instalação e execução dos processos.
@@ -83,6 +81,13 @@ A versão usada nesse procedimento é o Java 8, atual versão estável da Oracle
 {{< source sh >}}
 curl -k -L -H "Cookie: oraclelicense=accept-securebackup-cookie" -O http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.rpm
 rpm -i jdk-8u60-linux-x64.rpm
+
+echo 'export JAVA_HOME="/usr/java/jdk1.8.0_60"' > /etc/profile.d/java.sh
+source /etc/profile.d/java.sh
+
+echo $JAVA_HOME
+
+> /usr/java/jdk1.8.0_60
 
 java -version
 
@@ -110,11 +115,15 @@ su - hadoop
 ssh-keygen -C hadoop -P '' -f ~/.ssh/id_rsa
 cp ~/.ssh/{id_rsa.pub,authorized_keys}
 
+ssh-keyscan grandesdados-hadoop >>  ~/.ssh/known_hosts
 ssh-keyscan localhost >> ~/.ssh/known_hosts
 ssh-keyscan 127.0.0.1 >> ~/.ssh/known_hosts
+ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
 
-ssh localhost
+ssh grandesdados-hadoop
 
+> Warning: Permanently added the RSA host key for IP address '172.17.0.6' to the list of known hosts.
+> Last login: Wed Sep 16 02:01:51 2015 from grandesdados-hadoop
 > (nova shell, sem login nem confirmação)
 
 # (sair do shell do ssh)
@@ -137,46 +146,48 @@ Esse procedimento é baseado na [documentação do Hadoop](http://hadoop.apache.
 Serviços:
 
 * HDFS: NameNode, SecondaryNameNode, DataNode
-* YARN: ResouceManager, NodeManager, Timeline
-
-Diretório:
-
-* /data/hadoop
+* YARN: ResouceManager, NodeManager
+* MR: HistoryServer
 
 ...
 
 **Instalação**
 
-(versão atual é a 2.7.1)
+O pacote usado nesse procedimento é o Hadoop 2.7.1 para CentOS6 descrito outro [artigo]({{< relref "post/tutorial_hadoop_build.md" >}}).
+
+Primeiramente, colocamos o pacote dentro do container.
+
+{{< source sh >}}
+# (shell fora do container)
+sudo docker cp hadoop-2.7.1.tar.gz grandesdados-hadoop:/hadoop
+{{< /source >}}
+
+De volta ao container.
 
 {{< source sh >}}
 tar zxf hadoop-2.7.1.tar.gz -C /opt
-{{< /source >}}
+chown hadoop:hadoop -R /opt/hadoop-2.7.1
 
-Configurar `JAVA_HOME` no arquivo `/opt/hadoop-2.7.1/etc/hadoop/hadoop-env.sh`:
+echo 'export PATH=$PATH:/opt/hadoop-2.7.1/bin:/opt/hadoop-2.7.1/sbin' > /etc/profile.d/hadoop.sh
+source /etc/profile.d/hadoop.sh
 
-{{< source sh >}}
-export JAVA_HOME="..."
-{{< /source >}}
-
-Editar `/hadoop/.bash_profile` (adicionar):
-
-{{< source sh >}}
-export PATH=$PATH:/opt/hadoop-2.7.1/bin:/opt/hadoop-2.7.1/sbin
-{{< /source >}}
-
-(Verificação)
-
-{{< source sh >}}
 hadoop version
 
 > Hadoop 2.7.1
-> Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git -r cc72e9b000545b86b75a61f4835eb86d57bfafc0
-> Compiled by jenkins on 2014-11-14T23:45Z
+> Subversion Unknown -r Unknown
+> Compiled by hadoop on 2015-09-01T00:30Z
 > Compiled with protoc 2.5.0
-> From source with checksum df7537a4faa4658983d397abf4514320
+> From source with checksum fc0a1a23fc1868e4d5ee7fa2b28a58a
 > This command was run using /opt/hadoop-2.7.1/share/hadoop/common/hadoop-common-2.7.1.jar
+
+mkdir -p /data/hadoop
+chown hadoop:hadoop /data/hadoop
+
 {{< /source >}}
+
+**Configuração**
+
+(para a configuração, deve ser usado o usuário hadoop: `su - hadoop`)
 
 Editar `/opt/hadoop-2.7.1/etc/hadoop/core-site.xml`:
 
@@ -188,7 +199,7 @@ Editar `/opt/hadoop-2.7.1/etc/hadoop/core-site.xml`:
     </property>
     <property>
         <name>fs.defaultFS</name>
-        <value>hdfs://localhost</value>
+        <value>hdfs://grandesdados-hadoop</value>
     </property>
 </configuration>
 {{< /source >}}
@@ -234,72 +245,119 @@ Editar `/opt/hadoop-2.7.1/etc/hadoop/mapred-site.xml`:
 </configuration>
 {{< /source >}}
 
-**Setup Inicial**
-
-(antes da primeira inicialização)
+Setup Inicial (antes da primeira inicialização).
 
 {{< source sh >}}
 hdfs namenode -format
+
+> 15/09/16 02:12:03 INFO namenode.NameNode: STARTUP_MSG: 
+> /************************************************************
+> STARTUP_MSG: Starting NameNode
+> STARTUP_MSG:   host = grandesdados-hadoop/172.17.0.6
+> STARTUP_MSG:   args = [-format]
+> STARTUP_MSG:   version = 2.7.1
+> (...)
+> 15/09/16 02:12:03 INFO namenode.NameNode: createNameNode [-format]
+> Formatting using clusterid: CID-96945fc6-fa39-4801-828f-8aeb94880a7d
+> (...)
+> 15/09/16 02:12:04 INFO common.Storage: Storage directory /data/hadoop/dfs/name has been successfully formatted.
+> (...)
+
 {{< /source >}}
 
-**Start / Stop**
+
+**HDFS**
 
 {{< source sh >}}
 start-dfs.sh
-start-yarn.sh
-mr-jobhistory-daemon.sh start historyserver
+
+> Starting namenodes on [grandesdados-hadoop]
+> grandesdados-hadoop: starting namenode, logging to /opt/hadoop-2.7.1/logs/hadoop-hadoop-namenode-grandesdados-hadoop.out
+> localhost: starting datanode, logging to /opt/hadoop-2.7.1/logs/hadoop-hadoop-datanode-grandesdados-hadoop.out
+> Starting secondary namenodes [0.0.0.0]
+> 0.0.0.0: starting secondarynamenode, logging to /opt/hadoop-2.7.1/logs/hadoop-hadoop-secondarynamenode-grandesdados-hadoop.out
 {{< /source >}}
+
+Interface Web do Name Node:
+
+http://[ip-do-container]:50070/
+
+Interface Web do Data Node (vazia):
+
+http://[ip-do-container]:50075/
+
+Interface Web do Secondary Name Node:
+
+http://[ip-do-container]:50090/
+
+Para parar o serviço:
+
+{{< source sh >}}
+stop-dfs.sh
+{{< /source >}}
+
+
+**YARN**
+
+{{< source sh >}}
+start-yarn.sh
+
+> starting yarn daemons
+> starting resourcemanager, logging to /opt/hadoop-2.7.1/logs/yarn-hadoop-resourcemanager-grandesdados-hadoop.out
+> localhost: starting nodemanager, logging to /opt/hadoop-2.7.1/logs/yarn-hadoop-nodemanager-grandesdados-hadoop.out
+{{< /source >}}
+
+Interface Web do Resource Manager:
+
+http://[ip-do-container]:8088/
+
+Interface Web do Node Manager:
+
+http://[ip-do-container]:8042/
+
+Para parar o serviço:
 
 {{< source sh >}}
 stop-yarn.sh
-stop-dfs.sh
-mr-jobhistory-daemon.sh stop historyserver
 {{< /source >}}
 
-**Console Web**
 
-HDFS
+**History Server**
 
-http://localhost:50070/
+{{< source sh >}}
+mr-jobhistory-daemon.sh start historyserver
 
-YARN
+> starting historyserver, logging to /opt/hadoop-2.7.1/logs/mapred-hadoop-historyserver-grandesdados-hadoop.out
+{{< /source >}}
 
-http://localhost:8088/
+Interface Web do History Server:
 
-Job History
+http://[ip-do-container]:19888/
 
-http://localhost:19888/
+Para parar o serviço:
+
+{{< source sh >}}
+mr-jobhistory-daemon.sh stop historyserver
+{{< /source >}}
 
 
 **Teste**
 
-(Teste 1) Cálculo do Pi
+Cálculo do Pi
 
 {{< source sh >}}
-yarn jar /opt/hadoop-2.5.2/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.5.2.jar pi 16 100000
-{{< /source >}}
+yarn jar /opt/hadoop-2.7.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar pi 16 100000
 
-(Teste 2) Grep
+> Number of Maps  = 16
+> Samples per Map = 100000
+> (...)
+> INFO impl.YarnClientImpl: Submitted application application_1442370927086_0001
+> INFO mapreduce.Job: The url to track the job: http://grandesdados-hadoop:8088/proxy/application_1442370927086_0001/
+> INFO mapreduce.Job: Running job: job_1442370927086_0001
+> (...)
+> Job Finished in 48.333 seconds
+> Estimated value of Pi is 3.14157500000000000000
 
-{{< source sh >}}
-hdfs dfs -put /opt/hadoop-2.5.2/etc/hadoop /hadoop_test
-
-yarn jar /opt/hadoop-2.5.2/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.5.2.jar grep /hadoop_test /hadoop_output 'dfs[a-z.]+'
-
-hdfs dfs -cat /hadoop_output/*
-
-> 6       dfs.audit.logger4       dfs.class
-> 3       dfs.server.namenode.
-> 2       dfs.period
-> 2       dfs.audit.log.maxfilesize
-> 2       dfs.audit.log.maxbackupindex
-> 1       dfsmetrics.log
-> 1       dfsadmin
-> 1       dfs.servers
-> 1       dfs.replication
-> 1       dfs.file
-
-hdfs dfs -rm -r /hadoop_test /hadoop_output
 {{< /source >}}
 
 
