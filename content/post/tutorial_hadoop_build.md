@@ -269,6 +269,12 @@ No final desse procedimento, o pacote do Hadoop estará gerado em:
 
 `/hadoop/hadoop-2.7.1-src/hadoop-dist/target/hadoop-2.7.1.tar.gz`
 
+Para copiar do container para a máquina host:
+<br/>(`3cc2bc5e593b` é o identificador do container no Docker)
+{{< source sh >}}
+# shell na máquina
+sudo docker cp 3cc2bc5e593b:/hadoop/hadoop-2.7.1-src/hadoop-dist/target/hadoop-2.7.1.tar.gz .
+{{< /source >}}
 
 ## Conclusão
 

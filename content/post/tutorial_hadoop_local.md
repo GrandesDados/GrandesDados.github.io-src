@@ -1,8 +1,8 @@
 +++
 author = "cirocavani"
 comments = true
-date = "2015-09-12T21:49:07-03:00"
-draft = true
+date = "2015-09-16T23:26:07-03:00"
+draft = false
 image = ""
 menu = ""
 share = true
@@ -51,6 +51,8 @@ Hadoop, ZooKeeper, HBase e Kafka.
 
 Começamos com a criação de um conainer do Docker com a imagem do CentOS6.
 
+> Importante: para os endereços com `grandesdados-hadoop` funcionarem fora do container, direto na máquina host, é necessário colocar no `/etc/hosts` da máquina host o endereço IP do container do Docker para esse nome.
+ 
 Ao executar o comando `run`, o Docker automaticamente fará o download da imagem e a shell será inicializada dentro de um novo container.
 
 {{< source sh >}}
@@ -122,8 +124,7 @@ ssh-keyscan 0.0.0.0 >> ~/.ssh/known_hosts
 
 ssh grandesdados-hadoop
 
-> Warning: Permanently added the RSA host key for IP address '172.17.0.6' to the list of known hosts.
-> Last login: Wed Sep 16 02:01:51 2015 from grandesdados-hadoop
+> Warning: Permanently added the RSA host key for IP address '172.17.0.12' to the list of known hosts.
 > (nova shell, sem login nem confirmação)
 
 # (sair do shell do ssh)
@@ -162,7 +163,7 @@ Primeiramente, colocamos o pacote dentro do container.
 sudo docker cp hadoop-2.7.1.tar.gz grandesdados-hadoop:/hadoop
 {{< /source >}}
 
-De volta ao container.
+De volta ao container como usuário root.
 
 {{< source sh >}}
 tar zxf hadoop-2.7.1.tar.gz -C /opt
@@ -253,20 +254,22 @@ hdfs namenode -format
 > 15/09/16 02:12:03 INFO namenode.NameNode: STARTUP_MSG: 
 > /************************************************************
 > STARTUP_MSG: Starting NameNode
-> STARTUP_MSG:   host = grandesdados-hadoop/172.17.0.6
+> STARTUP_MSG:   host = grandesdados-hadoop/172.17.0.12
 > STARTUP_MSG:   args = [-format]
 > STARTUP_MSG:   version = 2.7.1
 > (...)
-> 15/09/16 02:12:03 INFO namenode.NameNode: createNameNode [-format]
-> Formatting using clusterid: CID-96945fc6-fa39-4801-828f-8aeb94880a7d
+> INFO namenode.NameNode: createNameNode [-format]
+> Formatting using clusterid: CID-5daa32a0-3ab6-405e-bfd2-05c0a6e1e7e6
 > (...)
-> 15/09/16 02:12:04 INFO common.Storage: Storage directory /data/hadoop/dfs/name has been successfully formatted.
+> INFO common.Storage: Storage directory /data/hadoop/dfs/name has been successfully formatted.
 > (...)
 
 {{< /source >}}
 
 
 **HDFS**
+
+(como usuário hadoop `su - hadoop`)
 
 {{< source sh >}}
 start-dfs.sh
@@ -276,19 +279,23 @@ start-dfs.sh
 > localhost: starting datanode, logging to /opt/hadoop-2.7.1/logs/hadoop-hadoop-datanode-grandesdados-hadoop.out
 > Starting secondary namenodes [0.0.0.0]
 > 0.0.0.0: starting secondarynamenode, logging to /opt/hadoop-2.7.1/logs/hadoop-hadoop-secondarynamenode-grandesdados-hadoop.out
+
+# criação do diretório do usuário hadoop
+hdfs dfs -mkdir -p /user/hadoop
+
 {{< /source >}}
 
 Interface Web do Name Node:
 
-http://[ip-do-container]:50070/
+http://grandesdados-hadoop:50070/
 
 Interface Web do Data Node (vazia):
 
-http://[ip-do-container]:50075/
+http://grandesdados-hadoop:50075/
 
 Interface Web do Secondary Name Node:
 
-http://[ip-do-container]:50090/
+http://grandesdados-hadoop:50090/
 
 Para parar o serviço:
 
@@ -298,6 +305,8 @@ stop-dfs.sh
 
 
 **YARN**
+
+(como usuário hadoop `su - hadoop`)
 
 {{< source sh >}}
 start-yarn.sh
@@ -309,11 +318,11 @@ start-yarn.sh
 
 Interface Web do Resource Manager:
 
-http://[ip-do-container]:8088/
+http://grandesdados-hadoop:8088/
 
 Interface Web do Node Manager:
 
-http://[ip-do-container]:8042/
+http://grandesdados-hadoop:8042/
 
 Para parar o serviço:
 
@@ -324,6 +333,8 @@ stop-yarn.sh
 
 **History Server**
 
+(como usuário hadoop `su - hadoop`)
+
 {{< source sh >}}
 mr-jobhistory-daemon.sh start historyserver
 
@@ -332,7 +343,7 @@ mr-jobhistory-daemon.sh start historyserver
 
 Interface Web do History Server:
 
-http://[ip-do-container]:19888/
+http://grandesdados-hadoop:19888/
 
 Para parar o serviço:
 
@@ -343,7 +354,58 @@ mr-jobhistory-daemon.sh stop historyserver
 
 **Teste**
 
-Cálculo do Pi
+(para os testes, deve ser usado o usuário hadoop: `su - hadoop`)
+
+Processos:
+
+{{< source sh >}}
+ps x
+
+>   PID TTY      STAT   TIME COMMAND
+>  5162 ?        S      0:00 -bash
+>  5327 ?        Sl     0:08 /usr/java/jdk1.8.0_60/bin/java -Dproc_namenode (...)
+>  5423 ?        Sl     0:07 /usr/java/jdk1.8.0_60/bin/java -Dproc_datanode (...)
+>  5612 ?        Sl     0:06 /usr/java/jdk1.8.0_60/bin/java -Dproc_secondarynamenode (...)
+>  5772 ?        Sl     0:08 /usr/java/jdk1.8.0_60/bin/java -Dproc_resourcemanager (...)
+>  5870 ?        Sl     0:07 /usr/java/jdk1.8.0_60/bin/java -Dproc_nodemanager (...)
+>  6189 ?        Sl     0:08 /usr/java/jdk1.8.0_60/bin/java -Dproc_historyserver (...)
+>  6273 ?        R+     0:00 ps x
+
+{{< /source >}}
+
+Exemplos de MapReduce:
+
+{{< source sh >}}
+yarn jar /opt/hadoop-2.7.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar
+
+> An example program must be given as the first argument.
+> Valid program names are:
+>   aggregatewordcount: An Aggregate based map/reduce program that counts the words in the input files.
+>   aggregatewordhist: An Aggregate based map/reduce program that computes the histogram of the words in the input files.
+>   bbp: A map/reduce program that uses Bailey-Borwein-Plouffe to compute exact digits of Pi.
+>   dbcount: An example job that count the pageview counts from a database.
+>   distbbp: A map/reduce program that uses a BBP-type formula to compute exact bits of Pi.
+>   grep: A map/reduce program that counts the matches of a regex in the input.
+>   join: A job that effects a join over sorted, equally partitioned datasets
+>   multifilewc: A job that counts words from several files.
+>   pentomino: A map/reduce tile laying program to find solutions to pentomino problems.
+>   pi: A map/reduce program that estimates Pi using a quasi-Monte Carlo method.
+>   randomtextwriter: A map/reduce program that writes 10GB of random textual data per node.
+>   randomwriter: A map/reduce program that writes 10GB of random data per node.
+>   secondarysort: An example defining a secondary sort to the reduce.
+>   sort: A map/reduce program that sorts the data written by the random writer.
+>   sudoku: A sudoku solver.
+>   teragen: Generate data for the terasort
+>   terasort: Run the terasort
+>   teravalidate: Checking results of terasort
+>   wordcount: A map/reduce program that counts the words in the input files.
+>   wordmean: A map/reduce program that counts the average length of the words in the input files.
+>   wordmedian: A map/reduce program that counts the median length of the words in the input files.
+>   wordstandarddeviation: A map/reduce program that counts the standard deviation of the length of the words in the input files.
+
+{{< /source >}}
+
+Rodando o Cálculo do Pi com MapReduce:
 
 {{< source sh >}}
 yarn jar /opt/hadoop-2.7.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.1.jar pi 16 100000
@@ -351,9 +413,9 @@ yarn jar /opt/hadoop-2.7.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.
 > Number of Maps  = 16
 > Samples per Map = 100000
 > (...)
-> INFO impl.YarnClientImpl: Submitted application application_1442370927086_0001
-> INFO mapreduce.Job: The url to track the job: http://grandesdados-hadoop:8088/proxy/application_1442370927086_0001/
-> INFO mapreduce.Job: Running job: job_1442370927086_0001
+> INFO impl.YarnClientImpl: Submitted application application_1442439610364_0001
+> INFO mapreduce.Job: The url to track the job: http://grandesdados-hadoop:8088/proxy/application_1442439610364_0001/
+> INFO mapreduce.Job: Running job: job_1442439610364_0001
 > (...)
 > Job Finished in 48.333 seconds
 > Estimated value of Pi is 3.14157500000000000000
@@ -365,15 +427,19 @@ yarn jar /opt/hadoop-2.7.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.
 
 Esse procedimento é baseado na [documentação do ZooKeeper](https://zookeeper.apache.org/doc/r3.4.6/zookeeperStarted.html).
 
+Dentro do container como usuário root:
+
 {{< source sh >}}
 curl -L -O http://archive.apache.org/dist/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
 tar zxf zookeeper-3.4.6.tar.gz -C /opt
-{{< /source >}}
+chown hadoop:hadoop -R /opt/zookeeper-3.4.6
 
-Editar `/hadoop/.bash_profile` (adicionar):
+echo 'export PATH=$PATH:/opt/zookeeper-3.4.6/bin' > /etc/profile.d/zookeeper.sh
+source /etc/profile.d/zookeeper.sh
 
-{{< source sh >}}
-export PATH=$PATH:/opt/zookeeper-3.4.6/bin
+mkdir -p /data/zookeeper
+chown hadoop:hadoop /data/zookeeper
+
 {{< /source >}}
 
 Editar `/opt/zookeeper-3.4.6/conf/zoo.cfg`:
@@ -384,12 +450,18 @@ dataDir=/data/zookeeper
 clientPort=2181
 {{< /source >}}
 
-
-**Start / Stop**
+Inicializando o serviço:
 
 {{< source sh >}}
+su - hadoop
 zkServer.sh start
+
+> JMX enabled by default
+> Using config: /opt/zookeeper-3.4.6/bin/../conf/zoo.cfg
+> Starting zookeeper ... STARTED
 {{< /source >}}
+
+Para parar o serviço:
 
 {{< source sh >}}
 zkServer.sh stop
@@ -397,22 +469,78 @@ zkServer.sh stop
 
 **Teste**
 
-...
+(para os testes, deve ser usado o usuário hadoop: `su - hadoop`)
+
+Processo:
+
+{{< source sh >}}
+ps x | grep zoo
+
+> 8246 ?        Sl     0:00 /usr/java/jdk1.8.0_60/bin/java (...) org.apache.zookeeper.server.quorum.QuorumPeerMain (...)
+> 8291 ?        S+     0:00 grep zoo
+{{< /source >}}
+
+Telnet:
+
+{{< source sh >}}
+echo 'ruok' |  curl telnet://grandesdados-hadoop:2181
+
+> imok
+{{< /source >}}
+
+Cliente:
+
+{{< source sh >}}
+zkCli.sh -server grandesdados-hadoop:2181
+
+> Connecting to grandesdados-hadoop:2181
+> ...
+> [zk: grandesdados-hadoop:2181(CONNECTED) 0] ls /
+> [zookeeper]
+> [zk: grandesdados-hadoop:2181(CONNECTED) 1] help
+> ZooKeeper -server host:port cmd args
+> 	stat path [watch]
+> 	set path data [version]
+> 	ls path [watch]
+> 	delquota [-n|-b] path
+> 	ls2 path [watch]
+> 	setAcl path acl
+> 	setquota -n|-b val path
+> 	history 
+> 	redo cmdno
+> 	printwatches on|off
+> 	delete path [version]
+> 	sync path
+> 	listquota path
+> 	rmr path
+> 	get path [watch]
+> 	create [-s] [-e] path data acl
+> 	addauth scheme auth
+> 	quit 
+> 	getAcl path
+> 	close 
+> 	connect host:port
+> [zk: grandesdados-hadoop:2181(CONNECTED) 3] quit
+
+{{< /source >}}
 
 
 ### HBase
 
 Esse procedimento é baseado na [documentação do HBase](http://hbase.apache.org/book.html#quickstart).
 
+Dentro do container como usuário root:
+
 {{< source sh >}}
-curl -L -O http://archive.apache.org/dist/hbase/hbase-1.1.2/hbase-1.1.2-bin.tar.gz
+curl -L -O http://archive.apache.org/dist/hbase/1.1.2/hbase-1.1.2-bin.tar.gz
 tar zxf hbase-1.1.2-bin.tar.gz -C /opt
-{{< /source >}}
+chown hadoop:hadoop -R /opt/hbase-1.1.2
 
-Editar `/hadoop/.bash_profile` (adicionar):
+echo 'export PATH=$PATH:/opt/hbase-1.1.2/bin' > /etc/profile.d/hbase.sh
+source /etc/profile.d/hbase.sh
 
-{{< source sh >}}
-export PATH=$PATH:/opt/hbase-1.1.2/bin
+mkdir -p /data/hbase/tmp
+chown hadoop:hadoop -R /data/hbase
 {{< /source >}}
 
 Editar `/opt/hbase-1.1.2/conf/hbase-site.xml`:
@@ -425,7 +553,7 @@ Editar `/opt/hbase-1.1.2/conf/hbase-site.xml`:
   </property>
   <property>
     <name>hbase.rootdir</name>
-    <value>file:///data/hbase/root</value>
+    <value>hdfs:///hbase</value>
   </property>
   <property>
     <name>hbase.tmp.dir</name>
@@ -433,27 +561,42 @@ Editar `/opt/hbase-1.1.2/conf/hbase-site.xml`:
   </property>
   <property>
     <name>hbase.zookeeper.quorum</name>
-    <value>localhost</value>
-  </property>
-  <property>
-    <name>zookeeper.znode.parent</name>
-    <value>/grandesdados-hbase</value>
+    <value>grandesdados-hadoop</value>
   </property>
 </configuration>
 {{< /source >}}
 
 Editar `/opt/hbase-1.1.2/conf/hbase-env.sh`:
+<br/>(manter conteúdo original, só alterar os valores abaixo)
 
 {{< source sh >}}
 export HBASE_OPTS="-XX:+UseConcMarkSweepGC -Djava.net.preferIPv4Stack=true"
 export HBASE_MANAGES_ZK=false
 {{< /source >}}
 
-**Start / Stop**
+Inicializando o serviço:
 
 {{< source sh >}}
+su - hadoop
 start-hbase.sh
+
+> starting master, logging to /opt/hbase-1.1.2/bin/../logs/hbase-hadoop-master-grandesdados-hadoop.out
+> Java HotSpot(TM) 64-Bit Server VM warning: ignoring option PermSize=128m; support was removed in 8.0
+> Java HotSpot(TM) 64-Bit Server VM warning: ignoring option MaxPermSize=128m; support was removed in 8.0
+> starting regionserver, logging to /opt/hbase-1.1.2/bin/../logs/hbase-hadoop-1-regionserver-grandesdados-hadoop.out
+
 {{< /source >}}
+
+Interface Web do Master:
+
+http://grandesdados-hadoop:16010/
+
+Interface Web do Region Server:
+
+http://grandesdados-hadoop:16301/
+
+
+Para parar o serviço:
 
 {{< source sh >}}
 stop-hbase.sh
@@ -461,22 +604,58 @@ stop-hbase.sh
 
 **Teste**
 
-...
+(para os testes, deve ser usado o usuário hadoop: `su - hadoop`)
 
+Processo:
+
+{{< source sh >}}
+ps x | grep hbase
+
+> 8790 ?        S      0:00 bash /opt/hbase-1.1.2/bin/hbase-daemon.sh --config /opt/hbase-1.1.2/bin/../conf foreground_start master
+> 8804 ?        Sl     0:14 /usr/java/jdk1.8.0_60/bin/java -Dproc_master (...)
+> 8915 ?        S      0:00 bash /opt/hbase-1.1.2/bin/hbase-daemon.sh --config /opt/hbase-1.1.2/bin/../conf foreground_start regionserver -D hbase.regionserver.port=16201 -D hbase.regionserver.info.port=16301
+> 8929 ?        Sl     0:14 /usr/java/jdk1.8.0_60/bin/java -Dproc_regionserver (...)
+> 9329 ?        S+     0:00 grep hbase
+
+{{< /source >}}
+
+Cliente:
+
+{{< source sh >}}
+hbase shell
+
+> HBase Shell; enter 'help<RETURN>' for list of supported commands.
+> Type "exit<RETURN>" to leave the HBase Shell
+> Version 1.1.2, rcc2b70cf03e3378800661ec5cab11eb43fafe0fc, Wed Aug 26 20:11:27 PDT 2015
+>
+> hbase(main):001:0> status
+> 1 servers, 0 dead, 2.0000 average load
+>
+> hbase(main):002:0> help
+> HBase Shell, version 1.1.2, rcc2b70cf03e3378800661ec5cab11eb43fafe0fc, Wed Aug 26 20:11:27 PDT 2015
+> Type 'help "COMMAND"', (e.g. 'help "get"' -- the quotes are necessary) for help on a specific command.
+> Commands are grouped. Type 'help "COMMAND_GROUP"', (e.g. 'help "general"') for help on a command group.
+> (...)
+> hbase(main):004:0> exit
+
+{{< /source >}}
 
 ### Kafka
 
 Esse procedimento é baseado na [documentação do Kafka](http://kafka.apache.org/documentation.html#quickstart).
 
+Dentro do container como usuário root:
+
 {{< source sh >}}
 curl -L -O http://archive.apache.org/dist/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz
 tar zxf kafka_2.10-0.8.2.1.tgz -C /opt
-{{< /source >}}
+chown hadoop:hadoop -R /opt/kafka_2.10-0.8.2.1
 
-Editar `/hadoop/.bash_profile` (adicionar):
+echo 'export PATH=$PATH:/opt/kafka_2.10-0.8.2.1/bin' > /etc/profile.d/kafka.sh
+source /etc/profile.d/kafka.sh
 
-{{< source sh >}}
-export PATH=$PATH:/opt/kafka_2.10-0.8.2.1/bin
+mkdir -p /data/kafka
+chown hadoop:hadoop /data/kafka
 {{< /source >}}
 
 Editar `/opt/kafka_2.10-0.8.2.1/config/server.properties`:
@@ -484,25 +663,67 @@ Editar `/opt/kafka_2.10-0.8.2.1/config/server.properties`:
 
 {{< source ini >}}
 log.dirs=/data/kafka
-zookeeper.connect=localhost:2181/grandesdados-kafka
+zookeeper.connect=grandesdados-hadoop:2181
 {{< /source >}}
 
-**Start / Stop**
+Inicializando o serviço:
 
 {{< source sh >}}
-kafka-server-start.sh /opt/kafka_2.10-0.8.2.1/config/server.properties
+su - hadoop
+kafka-server-start.sh /opt/kafka_2.10-0.8.2.1/config/server.properties &> kafka.out &
 {{< /source >}}
+
+Para parar o serviço:
 
 {{< source sh >}}
 kafka-server-stop.sh /opt/kafka_2.10-0.8.2.1/config/server.properties
 {{< /source >}}
 
+
 **Teste**
 
-...
+(para os testes, deve ser usado o usuário hadoop: `su - hadoop`)
 
+Processo:
+
+{{< source sh >}}
+ps x | grep kafka
+
+> 9818 ?        Sl     0:03 /usr/java/jdk1.8.0_60/bin/java (...) kafka.Kafka /opt/kafka_2.10-0.8.2.1/config/server.properties
+> 9928 ?        S+     0:00 grep kafka
+
+{{< /source >}}
+
+Enviando e recebendo mensagens:
+
+{{< source sh >}}
+kafka-topics.sh \
+--create \
+--zookeeper grandesdados-hadoop:2181 \
+--replication-factor 1 \
+--partitions 1 \
+--topic test
+
+> Created topic "test".
+
+echo 'Primeira mensagem de teste' | kafka-console-producer.sh --broker-list grandesdados-hadoop:9092 --topic test
+
+> (...)
+
+kafka-console-consumer.sh --zookeeper grandesdados-hadoop:2181 --topic test --from-beginning
+
+> Primeira mensagem de teste
+> ^CConsumed 1 messages
+
+{{< /source >}}
 
 ## Conclusão
+
+A revolução em BigData é um fenômeno da tecnologia desenvolvida ao longo dos últimos anos focada na manipulação de um grande volume de dados em máquinas de baixo custo. Essa é a tecnologia que torna possível combinar uma solução de dados escalável com processos para geração de resultados relevantes, tanto no desenvolvimento de produtos quanto na evolução do conhecimento. O importante é entender como essa tecnologia pode ser usada para agregar valor ao negócio e permitir imaginar soluções inovadoras.
+
+Esse artigo documenta o passo-a-passo de uma configuração local do Hadoop, ZooKeeper, HBase e Kafka. Essas são os serviços essenciais em uma plataforma de BigData, juntamente com o Spark, possibilita o desenvolvimento de soluções tanto para processamento batch quanto para tempo real.
+ 
+Em artigos futuros, entrarei usando essa solução para desenvolver e testar algumas aplicações de BigData usando Spark.
 
 ...
 
