@@ -721,7 +721,7 @@ kafka-console-consumer.sh --zookeeper grandesdados-hadoop:2181 --topic test --fr
 
 A revolução em BigData é um fenômeno da tecnologia desenvolvida ao longo dos últimos anos focada na manipulação de um grande volume de dados em máquinas de baixo custo. Essa é a tecnologia que torna possível combinar uma solução de dados escalável com processos para geração de resultados relevantes, tanto no desenvolvimento de produtos quanto na evolução do conhecimento. O importante é entender como essa tecnologia pode ser usada para agregar valor ao negócio e permitir imaginar soluções inovadoras.
 
-Esse artigo documenta o passo-a-passo de uma configuração local do Hadoop, ZooKeeper, HBase e Kafka. Essas são os serviços essenciais em uma plataforma de BigData, juntamente com o Spark, possibilita o desenvolvimento de soluções tanto para processamento batch quanto para tempo real.
+Esse artigo documenta o passo-a-passo de uma configuração local do Hadoop, ZooKeeper, HBase e Kafka. Esses são os serviços essenciais em uma plataforma de BigData que, juntamente com o Spark, possibilitam o desenvolvimento de soluções tanto para processamento batch quanto para tempo real.
  
 Em artigos futuros, entrarei usando essa solução para desenvolver e testar algumas aplicações de BigData usando Spark.
 
