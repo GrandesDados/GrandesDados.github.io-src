@@ -9,7 +9,7 @@ share = true
 slug = "o-que-eu-vi-na-strata-ny-parte-1"
 tags = ["Globo.com", "BigData", "Strata", "Hardcore Data Science", "Eventos"]
 title = "O que eu vi Strata + Hadoop World NY 2015 - PARTE 1"
-
+description_post = "Ida ao tutorial Hardcore Data Science na Strata + Hadoop World 2015"
 +++
 
 Na última semana (29-01 de Outubro) estive na [Strata](http://strataconf.com/big-data-conference-ny-2015) em Nova Iorque, o evento de Big Data mais importante do ano, pela Globo.com.
