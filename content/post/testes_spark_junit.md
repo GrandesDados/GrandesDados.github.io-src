@@ -119,3 +119,5 @@ gradle clean test
 {{< /source >}}
 
 Pronto! Você já pode criar e rodar testes para seu código Spark. Espero que tenha ajudado. Em breve escreverei um post ensinando como testar um código de Spark Streaming.
+
+Post original em http://blog.werneckpaiva.com.br/2016/03/testes-de-jobs-spark-com-junit/
